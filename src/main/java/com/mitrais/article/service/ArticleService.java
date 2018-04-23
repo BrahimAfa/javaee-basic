@@ -5,6 +5,7 @@ import com.mitrais.article.model.Article;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ public class ArticleService {
             String title = rs.getString("title");
             String content = rs.getString("content");
 
-            Article article = new Article(id, title, content);
+            Article article = new Article(id, title, content, null);
             listArticle.add(article);
         }
         return listArticle;
@@ -86,7 +87,7 @@ public class ArticleService {
             Long id = rs.getLong("id");
             String title = rs.getString("title");
             String content = rs.getString("content");
-            Article article = new Article(id, title, content);
+            Article article = new Article(id, title, content, null);
 
             ps.close();
             disconnect();
@@ -200,5 +201,17 @@ public class ArticleService {
 
         em.close();
         emFactory.close();
+    }
+
+    // using JPQL
+    public List<Article> jpqlListArticle() throws SQLException {
+        EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
+        EntityManager em = emFactory.createEntityManager();
+
+        // table name first letter must be in uppercase
+        Query query = em.createQuery("SELECT id,title,Content FROM Article");
+        List<Article> listArticle = (List<Article>)query.getResultList();
+
+        return listArticle;
     }
 }

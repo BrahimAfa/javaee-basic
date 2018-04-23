@@ -8,24 +8,29 @@ public class Article {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.TABLE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
 
     @Column(name = "title")
     protected String title;
 
     @Column(name = "content")
-    protected String Content;
+    protected String content;
 
-    public Article(Long id, String title, String content) {
+    @OneToMany(mappedBy = "articleId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Comment comments;
+
+    public Article(Long id, String title, String content, Comment comments) {
         this.id = id;
         this.title = title;
-        Content = content;
+        this.content = content;
+        this.comments = comments;
     }
 
     public Article(String title, String content) {
         this.title = title;
-        Content = content;
+        this.content = content;
+        this.comments = comments;
     }
 
     public Article() {
@@ -48,10 +53,18 @@ public class Article {
     }
 
     public String getContent() {
-        return Content;
+        return this.content;
     }
 
     public void setContent(String content) {
-        Content = content;
+        this.content = content;
+    }
+
+    public Comment getComments() {
+        return comments;
+    }
+
+    public void setComments(Comment comments) {
+        this.comments = comments;
     }
 }

@@ -21,8 +21,12 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-outline-secondary" type="button" onclick="location.href='article/jpa/view?id=${article.id}'">View</button>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="location.href='article/jpa/edit?id=${article.id}'">Edit</button>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="location.href='article/jpa/delete?id=${article.id}'">Delete</button>
+                                <c:choose>
+                                    <c:when test="${sessionScope.uid != null}">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" onclick="location.href='article/jpa/edit?id=${article.id}'">Edit</button>
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" onclick="location.href='article/jpa/delete?id=${article.id}'">Delete</button>
+                                    </c:when>
+                                </c:choose>
                             </div><small class="text-muted">xx mins</small>
                         </div>
                     </div>

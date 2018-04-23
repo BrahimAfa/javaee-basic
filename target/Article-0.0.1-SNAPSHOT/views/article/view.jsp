@@ -12,6 +12,13 @@
         <div class="article-content">
             ${article.content}
         </div>
+        <div class="article-comment">
+            <ul>
+                <c:forEach var="comment" items="${article.comments}">
+                    <li>${comment.comment}</li>
+                </c:forEach>
+            </ul>
+        </div>
     </div>
 </div>
 <c:import url="/footer.jsp"></c:import>

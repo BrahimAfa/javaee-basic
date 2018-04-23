@@ -2,6 +2,7 @@ package com.mitrais.article.controller;
 
 import com.mitrais.article.model.Article;
 import com.mitrais.article.service.ArticleService;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -57,7 +58,8 @@ public class ArticleServlet extends HttpServlet {
                     jpaNewArticle(request, response);
                     break;
                 case "/article/jpa/list":
-                    jpaListArticle(request, response);
+//                    jpaListArticle(request, response);
+                    jpqlListArticle(request, response);
                     break;
                 case "/article/jpa/view":
                     jpaViewArticle(request, response);
@@ -121,6 +123,9 @@ public class ArticleServlet extends HttpServlet {
     private void viewArticle(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         RequestDispatcher dispatcher = request.getRequestDispatcher("/views/article/view.jsp");
         Article article = articleService.showArticle(Integer.parseInt(request.getParameter("id")));
+        // convert object to JSON for logging purpose
+        ObjectMapper mapper = new ObjectMapper();
+        System.out.println(mapper.writeValueAsString(article));
         request.setAttribute("article", article);
         dispatcher.forward(request, response);
     }
@@ -146,7 +151,7 @@ public class ArticleServlet extends HttpServlet {
         String title = request.getParameter("title");
         String content = request.getParameter("content");
 
-        Article article = new Article(id, title, content);
+        Article article = new Article(id, title, content, null);
         articleService.updateArticle(article);
         response.sendRedirect("/Article");
     }
@@ -154,7 +159,7 @@ public class ArticleServlet extends HttpServlet {
     private void deleteArticle(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         Long id = Long.parseLong(request.getParameter("id"));
 
-        Article article = new Article(id, null, null);
+        Article article = new Article(id, null, null, null);
         articleService.deleteArticle(article);
         response.sendRedirect("/Article");
     }
@@ -209,6 +214,22 @@ public class ArticleServlet extends HttpServlet {
 
         articleService.jpaRemoveArticle(id);
         response.sendRedirect("/Article/article/jpa/list");
+    }
+
+    // using JPQL
+    private void jpqlListArticle(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
+        List<Article> listArticles = articleService.jpqlListArticle();
+        request.setAttribute("listArticle", listArticles);
+        if (!listArticles.isEmpty()){
+            // convert object to JSON for logging purpose
+            ObjectMapper mapper = new ObjectMapper();
+            System.out.println(mapper.writeValueAsString(listArticles));
+        } else {
+            System.out.println("NO GOOD");
+        }
+        // different view due to jpql uses array instead of object, to access the column, use index of the array
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/views/article/jpql_list.jsp");
+        dispatcher.forward(request, response);
     }
 
 }

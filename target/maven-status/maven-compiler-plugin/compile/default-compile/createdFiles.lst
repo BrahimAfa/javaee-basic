@@ -1,4 +1,5 @@
 com\mitrais\article\controller\AccountServlet.class
+com\mitrais\article\model\Comment.class
 com\mitrais\article\service\AccountService.class
 com\mitrais\article\controller\ArticleServlet.class
 com\mitrais\article\service\ArticleService.class

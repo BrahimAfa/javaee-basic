@@ -18,7 +18,7 @@
         <div class="container d-flex justify-content-between">
             <c:choose>
                 <c:when test="${sessionScope.uid != null}">
-                    <a class="navbar-brand d-flex align-items-center" href="auth/logout"> <strong>JAVA - CDC</strong></a> <a class="sign-in-btn" href="auth/logout">Sign Out</a></button>
+                    <a class="navbar-brand d-flex align-items-center" href=""> <strong>JAVA - CDC</strong></a> <a class="sign-in-btn" href="auth/logout">Sign Out</a></button>
                 </c:when>
                 <c:otherwise>
                     <a class="navbar-brand d-flex align-items-center" href="auth/login"> <strong>JAVA - CDC</strong></a> <a class="sign-in-btn" href="auth/login">Sign In</a></button>
