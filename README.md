@@ -1,4 +1,4 @@
-# JAVAEE Basic Crud & Authentication
+# JavaEE Basic Crud & Authentication
 Study case project with JSP-servlet, JPA, ORM Hibernate, MySQL etc. which implement crud sample and simple authentication. Also using bootstrap as its frontend.
 
 ## Installation
