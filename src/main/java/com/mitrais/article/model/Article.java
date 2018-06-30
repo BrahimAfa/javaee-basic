@@ -67,4 +67,14 @@ public class Article {
     public void setComments(Comment comments) {
         this.comments = comments;
     }
+
+    @Override
+    public String toString() {
+        return "Article{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", comments=" + comments +
+                '}';
+    }
 }

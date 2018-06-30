@@ -3,18 +3,18 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          id="WebApp_ID" version="3.1">
     <display-name>Books Management Web Application</display-name>
-    <context-param>
-        <param-name>jdbcURL</param-name>
-        <param-value>jdbc:mysql://localhost:3306/article</param-value>
-    </context-param>
-    <context-param>
-        <param-name>jdbcUsername</param-name>
-        <param-value>root</param-value>
-    </context-param>
-    <context-param>
-        <param-name>jdbcPassword</param-name>
-        <param-value>mitr4i5</param-value>
-    </context-param>
+    <!--<context-param>-->
+        <!--<param-name>jdbcURL</param-name>-->
+        <!--<param-value>jdbc:mysql://localhost:3306/article</param-value>-->
+    <!--</context-param>-->
+    <!--<context-param>-->
+        <!--<param-name>jdbcUsername</param-name>-->
+        <!--<param-value>root</param-value>-->
+    <!--</context-param>-->
+    <!--<context-param>-->
+        <!--<param-name>jdbcPassword</param-name>-->
+        <!--<param-value>mitr4i5</param-value>-->
+    <!--</context-param>-->
     <servlet>
         <servlet-name>ArticleServlet</servlet-name>
         <servlet-class>com.mitrais.article.controller.ArticleServlet</servlet-class>

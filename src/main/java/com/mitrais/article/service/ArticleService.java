@@ -9,6 +9,8 @@ import javax.persistence.Query;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 public class ArticleService {
 
@@ -17,10 +19,11 @@ public class ArticleService {
     private String jdbcPassword;
     private Connection jdbcConntection;
 
-    public ArticleService(String jdbcURL, String jdbcUsername, String jdbcPassword) {
-        this.jdbcURL = jdbcURL;
-        this.jdbcUsername = jdbcUsername;
-        this.jdbcPassword = jdbcPassword;
+    public ArticleService() {
+        ResourceBundle database = PropertyResourceBundle.getBundle("database");
+        this.jdbcURL = database.getString("javax.persistence.jdbc.url");
+        this.jdbcUsername = database.getString("javax.persistence.jdbc.user");
+        this.jdbcPassword = database.getString("javax.persistence.jdbc.password");
     }
 
     protected void connect() throws SQLException {
@@ -41,90 +44,105 @@ public class ArticleService {
     }
 
     public boolean save(Article article) throws SQLException {
-        String sql = "INSERT INTO articles (title, content) VALUES (?, ?)";
+        boolean rowInserted = false;
         connect();
+        try (PreparedStatement ps = jdbcConntection.prepareStatement("INSERT INTO articles (title, content) VALUES (?, ?)")) {//try- with-resource
 
-        PreparedStatement ps = jdbcConntection.prepareStatement(sql);
-        ps.setString(1, article.getTitle());
-        ps.setString(2, article.getContent());
+            ps.setString(1, article.getTitle());
+            ps.setString(2, article.getContent());
 
-        boolean rowInserted = ps.executeUpdate() > 0;
-        ps.close();
-        disconnect();
+            rowInserted = ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            disconnect();
+        }
 
         return rowInserted;
     }
 
     public List<Article> listArticle() throws SQLException {
         List<Article> listArticle = new ArrayList<>();
-        String sql = "SELECT * FROM articles";
         connect();
+        try (
+                PreparedStatement ps = jdbcConntection.prepareStatement("SELECT * FROM articles");
+                ResultSet rs = ps.executeQuery();
+        ) {
 
-        PreparedStatement ps = jdbcConntection.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Long id = rs.getLong("id");
+                String title = rs.getString("title");
+                String content = rs.getString("content");
 
-        while (rs.next()) {
-            Long id = rs.getLong("id");
-            String title = rs.getString("title");
-            String content = rs.getString("content");
-
-            Article article = new Article(id, title, content, null);
-            listArticle.add(article);
+                Article article = new Article(id, title, content, null);
+                listArticle.add(article);
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            disconnect();
         }
         return listArticle;
 
     }
 
     public Article showArticle(int ids) throws SQLException {
-        String sql = "SELECT * FROM articles where id = ?";
+
         connect();
+        try (
+                PreparedStatement ps = jdbcConntection.prepareStatement("SELECT * FROM articles where id = ?");
+        ) {
 
-        PreparedStatement ps = jdbcConntection.prepareStatement(sql);
-        ps.setInt(1, ids);
-        ResultSet rs = ps.executeQuery();
+            ps.setInt(1, ids);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.first()) {
+                    Long id = rs.getLong("id");
+                    String title = rs.getString("title");
+                    String content = rs.getString("content");
+                    Article article = new Article(id, title, content, null);
 
-        if (rs.first()) {
-            Long id = rs.getLong("id");
-            String title = rs.getString("title");
-            String content = rs.getString("content");
-            Article article = new Article(id, title, content, null);
-
-            ps.close();
+                    return article;
+                }
+            }
+        } catch (SQLException e) {
+            throw e;
+        } finally {
             disconnect();
-            return article;
         }
 
-        ps.close();
-        disconnect();
         return null;
     }
 
     public boolean deleteArticle(Article article) throws SQLException {
-        String sql = "DELETE FROM articles WHERE id = ?";
+        boolean rowUpdated;
         connect();
+        try (PreparedStatement ps = jdbcConntection.prepareStatement("DELETE FROM articles WHERE id = ?");
 
-        PreparedStatement ps = jdbcConntection.prepareStatement(sql);
-        ps.setLong(1, article.getId());
+        ){
+            ps.setLong(1, article.getId());
 
-        boolean rowUpdated = ps.executeUpdate() > 0;
-        ps.close();
-        disconnect();
+            rowUpdated = ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw e;
+        } finally {
+            disconnect();
+        }
 
         return rowUpdated;
     }
 
     public boolean updateArticle(Article article) throws SQLException {
-        String sql = "UPDATE articles SET title = ?, content = ? WHERE id = ?";
+        boolean rowDeleted;
         connect();
+        try (PreparedStatement ps = jdbcConntection.prepareStatement("UPDATE articles SET title = ?, content = ? WHERE id = ?")) {
+            ps.setString(1, article.getTitle());
+            ps.setString(2, article.getContent());
+            ps.setLong(3, article.getId());
 
-        PreparedStatement ps = jdbcConntection.prepareStatement(sql);
-        ps.setString(1, article.getTitle());
-        ps.setString(2, article.getContent());
-        ps.setLong(3, article.getId());
-
-        boolean rowDeleted = ps.executeUpdate() > 0;
-        ps.close();
-        disconnect();
+            rowDeleted = ps.executeUpdate() > 0;
+        } finally {
+            disconnect();
+        }
 
         return rowDeleted;
     }
@@ -152,65 +170,94 @@ public class ArticleService {
     }
 
     public Article jpaShowArticle(int ids) throws SQLException {
-        EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
-        EntityManager em = emFactory.createEntityManager();
-        Article article = em.find(Article.class, (long) ids);
+        EntityManagerFactory emFactory = null;
+        EntityManager em = null;
+        Article article = null;
+        try {
+            emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
+            em = emFactory.createEntityManager();
+            article = em.find(Article.class, (long) ids);
+        } finally {
+            em.close();
+            emFactory.close();
+        }
 
         return article;
     }
 
     public void jpaCreateArticle(String title, String content) {
-        EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
-        EntityManager em = emFactory.createEntityManager();
-        em.getTransaction().begin();
+        EntityManagerFactory emFactory = null;
+        EntityManager em = null;
+        try {
+            emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
+            em = emFactory.createEntityManager();
+            em.getTransaction().begin();
 
-        Article article = new Article();
-        article.setTitle(title);
-        article.setContent(content);
+            Article article = new Article();
+            article.setTitle(title);
+            article.setContent(content);
 
-        em.persist(article);
-        em.getTransaction().commit();
+            em.persist(article);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+            emFactory.close();
+        }
 
-        em.close();
-        emFactory.close();
     }
 
     public void jpaUpdateArticle(Long id, String title, String content) {
-        EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
-        EntityManager em = emFactory.createEntityManager();
-        em.getTransaction().begin();
-        Article article = em.find(Article.class, id);
+        EntityManagerFactory emFactory = null;
+        EntityManager em = null;
+        try {
+            emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
+            em = emFactory.createEntityManager();
+            em.getTransaction().begin();
+            Article article = em.find(Article.class, id);
 
-        article.setTitle(title);
-        article.setContent(content);
+            article.setTitle(title);
+            article.setContent(content);
 
-        em.getTransaction().commit();
-
-        em.close();
-        emFactory.close();
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+            emFactory.close();
+        }
     }
 
     public void jpaRemoveArticle(Long id) {
-        EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
-        EntityManager em = emFactory.createEntityManager();
-        em.getTransaction().begin();
-        Article article = em.find(Article.class, id);
+        EntityManagerFactory emFactory = null;
+        EntityManager em = null;
+        try {
+            emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
+            em = emFactory.createEntityManager();
+            em.getTransaction().begin();
+            Article article = em.find(Article.class, id);
 
-        em.remove(article);
-        em.getTransaction().commit();
-
-        em.close();
-        emFactory.close();
+            em.remove(article);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+            emFactory.close();
+        }
     }
 
     // using JPQL
     public List<Article> jpqlListArticle() throws SQLException {
-        EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
-        EntityManager em = emFactory.createEntityManager();
+        List<Article> listArticle = new ArrayList<>();
+        EntityManagerFactory emFactory = null;
+        EntityManager em = null;
+        try {
+            emFactory = Persistence.createEntityManagerFactory("PERSISTENCE");
+            em = emFactory.createEntityManager();
 
-        // table name first letter must be in uppercase
-        Query query = em.createQuery("SELECT id,title,Content FROM Article");
-        List<Article> listArticle = (List<Article>)query.getResultList();
+            // table name first letter must be in uppercase
+            Query query = em.createQuery("SELECT id,title,content FROM Article");
+            listArticle = (List<Article>)query.getResultList();
+        } finally {
+            em.close();
+            emFactory.close();
+        }
 
         return listArticle;
     }

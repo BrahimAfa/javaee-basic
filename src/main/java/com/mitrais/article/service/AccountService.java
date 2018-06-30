@@ -3,6 +3,8 @@ package com.mitrais.article.service;
 import com.mitrais.article.model.User;
 
 import java.sql.*;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 public class AccountService {
 
@@ -11,10 +13,11 @@ public class AccountService {
     private String jdbcPassword;
     private Connection jdbcConntection;
 
-    public AccountService(String jdbcURL, String jdbcUsername, String jdbcPassword) {
-        this.jdbcURL = jdbcURL;
-        this.jdbcUsername = jdbcUsername;
-        this.jdbcPassword = jdbcPassword;
+    public AccountService() {
+        ResourceBundle database = PropertyResourceBundle.getBundle("database");
+        this.jdbcURL = database.getString("javax.persistence.jdbc.url");
+        this.jdbcUsername = database.getString("javax.persistence.jdbc.user");
+        this.jdbcPassword = database.getString("javax.persistence.jdbc.password");
     }
 
     protected void connect() throws SQLException {
@@ -38,24 +41,23 @@ public class AccountService {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
         connect();
 
-        PreparedStatement ps = jdbcConntection.prepareStatement(sql);
-        ps.setString(1, user.getUsername());
-        ps.setString(2, user.getPassword());
-        ResultSet rs = ps.executeQuery();
+        try (PreparedStatement ps = jdbcConntection.prepareStatement(sql)){
+            ps.setString(1, user.getUsername());
+            ps.setString(2, user.getPassword());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.first()) {
+                    int id = rs.getInt("id");
+                    String username = rs.getString("username");
+                    String password = rs.getString("password");
+                    User account = new User(id, username, password);
 
-        if (rs.first()) {
-            int id = rs.getInt("id");
-            String username = rs.getString("username");
-            String password = rs.getString("password");
-            User account = new User(id, username, password);
-
-            ps.close();
+                    return account;
+                }
+            }
+        } finally {
             disconnect();
-            return account;
         }
 
-        ps.close();
-        disconnect();
         return null;
     }
 }

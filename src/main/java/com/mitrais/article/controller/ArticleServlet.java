@@ -27,11 +27,7 @@ public class ArticleServlet extends HttpServlet {
     }
 
     public void init() {
-        String jdbcURL = getServletContext().getInitParameter("jdbcURL");
-        String jdbcUsername = getServletContext().getInitParameter("jdbcUsername");
-        String jdbcPassword = getServletContext().getInitParameter("jdbcPassword");
-
-        articleService = new ArticleService(jdbcURL, jdbcUsername, jdbcPassword);
+        articleService = new ArticleService();
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -123,9 +119,10 @@ public class ArticleServlet extends HttpServlet {
     private void viewArticle(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         RequestDispatcher dispatcher = request.getRequestDispatcher("/views/article/view.jsp");
         Article article = articleService.showArticle(Integer.parseInt(request.getParameter("id")));
+        System.out.println(article);
         // convert object to JSON for logging purpose
-        ObjectMapper mapper = new ObjectMapper();
-        System.out.println(mapper.writeValueAsString(article));
+//        ObjectMapper mapper = new ObjectMapper();
+//        System.out.println(mapper.writeValueAsString(article));
         request.setAttribute("article", article);
         dispatcher.forward(request, response);
     }
@@ -220,13 +217,14 @@ public class ArticleServlet extends HttpServlet {
     private void jpqlListArticle(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         List<Article> listArticles = articleService.jpqlListArticle();
         request.setAttribute("listArticle", listArticles);
-        if (!listArticles.isEmpty()){
-            // convert object to JSON for logging purpose
-            ObjectMapper mapper = new ObjectMapper();
-            System.out.println(mapper.writeValueAsString(listArticles));
-        } else {
-            System.out.println("NO GOOD");
-        }
+        listArticles.stream().forEach(System.out::print);
+//        if (!listArticles.isEmpty()){
+//            // convert object to JSON for logging purpose
+//            ObjectMapper mapper = new ObjectMapper();
+//            System.out.println(mapper.writeValueAsString(listArticles));
+//        } else {
+//            System.out.println("NO GOOD");
+//        }
         // different view due to jpql uses array instead of object, to access the column, use index of the array
         RequestDispatcher dispatcher = request.getRequestDispatcher("/views/article/jpql_list.jsp");
         dispatcher.forward(request, response);

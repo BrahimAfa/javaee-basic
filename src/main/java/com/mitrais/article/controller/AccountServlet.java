@@ -27,11 +27,7 @@ public class AccountServlet extends HttpServlet {
     }
 
     public void init() {
-        String jdbcURL = getServletContext().getInitParameter("jdbcURL");
-        String jdbcUsername = getServletContext().getInitParameter("jdbcUsername");
-        String jdbcPassword = getServletContext().getInitParameter("jdbcPassword");
-
-        accountService = new AccountService(jdbcURL, jdbcUsername, jdbcPassword);
+        accountService = new AccountService();
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
