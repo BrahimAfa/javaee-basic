@@ -1,3 +1,5 @@
+***NOTE: Simple boilerplate for any Student who wants to start a simple project with JSP, JPA, ORM Hibernate, MySQL, Simple Auth***
+
 # JavaEE Basic Crud & Authentication
 Study case project with JSP-servlet, JPA, ORM Hibernate, MySQL etc. which implement crud sample and simple authentication. Also using bootstrap as its frontend.
 
